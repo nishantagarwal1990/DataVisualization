@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Homework 2 Solution</title>
+    <script type="text/javascript" src="script.js"></script>
+    <script src="https://d3js.org/d3.v4.js"></script>
     <style>
         .barChart {
             fill: steelblue;
@@ -45,27 +47,42 @@
         div, span {
             padding: 1em;
         }
+
+        div.tooltip {
+            position: absolute;
+            text-align: center;
+            width: 50px;
+            height: 28px;
+            padding: 1px;
+            font: 12px courier-new;
+            background: #068cff;
+            border: 1px;
+            border-radius: 10px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
     </style>
 </head>
-<body>
-<body>
+
+<body onload="changeData()">
 
 <h3>CS-5630 / CS-6630 Homework 2</h3>
-<span>Your Name</span>
-<span>Your Email Address</span>
-<span>u0123456</span>
+<span>Nishant Agarwal</span>
+<span>nishant@cs.utah.edu</span>
+<span>u1010232</span>
 
 <br/>
 <hr/>
 <br/>
 
 <span>
-    <button>Staircase</button>
+    <button onclick="staircase()">Staircase</button>
 </span>
 
 <span>
     <label>Dataset:</label>
-    <select id="dataset">
+    <select id="dataset" onchange="changeData()">
         <option value="anscombe_I">Anscombe's Quartet I</option>
         <option selected value="anscombe_II">Anscombe's Quartet II</option>
         <option value="anscombe_III">Anscombe's Quartet III</option>
@@ -74,51 +91,141 @@
 </span>
 
 <span>
-    <input type="checkbox" id="random"> Random Subset
+    <input type="checkbox" id="random" onchange="randomSubset()"> Random Subset
 </span>
 
 <br/>
 
 <div>
     <h2>Bar Charts</h2>
-    <svg width="200" height="200">
-        <!-- Paste your HW 1 solution here -->
+    <svg class="barChart" width="300" height="300" viewBox="0 0 300 300">
+        <g id="abar" transform="translate(0,300) scale(1,-1)">
+            <rect x="0" width="20" height="200"></rect>
+            <rect x="20" width="20" height="160"></rect>
+            <rect x="40" width="20" height="260"></rect>
+            <rect x="60" width="20" height="180"></rect>
+            <rect x="80" width="20" height="220"></rect>
+            <rect x="100" width="20" height="280"></rect>
+            <rect x="120" width="20" height="120"></rect>
+            <rect x="140" width="20" height="80"></rect>
+            <rect x="160" width="20" height="240"></rect>
+            <rect x="180" width="20" height="140"></rect>
+            <rect x="200" width="20" height="100"></rect>
+        </g>
     </svg>
 
-    <svg width="200" height="200">
-        <!-- Paste your HW 1 solution here -->
+    <svg class="barChart" width="300" height="300" viewBox="0 0 300 300">
+        <g id="bbar" transform="translate(0,300) scale(1,-1)">
+            <rect x="0" width="20" height="160.8"></rect>
+            <rect x="20" width="20" height="139"></rect>
+            <rect x="40" width="20" height="151.6"></rect>
+            <rect x="60" width="20" height="176.2"></rect>
+            <rect x="80" width="20" height="166.6"></rect>
+            <rect x="100" width="20" height="199.2"></rect>
+            <rect x="120" width="20" height="144.8"></rect>
+            <rect x="140" width="20" height="85.2"></rect>
+            <rect x="160" width="20" height="216.8"></rect>
+            <rect x="180" width="20" height="96.4"></rect>
+            <rect x="200" width="20" height="113.6"></rect>
+        </g>
     </svg>
 </div>
 
 <div>
     <h2>Line Charts</h2>
 
-    <svg width="200" height="200">
-        <!-- Paste your HW 1 solution here -->
+    <svg width="300" height="300" viewBox="0 0 300 300">
+        <g class="lines" id="aline" transform="translate(0,300) scale(1,-1)">
+            <path d ="
+                        M 0, 200
+                        L 20,160
+                        L 40,260
+                        L 60,180
+                        L 80,220
+                        L 100,280
+                        L 120,120
+                        L 140,80
+                        L 160,240
+                        L 180,140
+                        L 200,100"/>
+        </g>
     </svg>
 
-    <svg width="200" height="200">
-        <!-- Paste your HW 1 solution here -->
+    <svg width="300" height="300" viewBox="0 0 300 300">
+        <g class="lines" id="bline" transform="translate(0,300) scale(1,-1)">
+            <path d ="
+                        M 0, 160.8
+                        L 20,139
+                        L 40,151.6
+                        L 60,176.2
+                        L 80,166.6
+                        L 100,199.2
+                        L 120,144.8
+                        L 140,85.2
+                        L 160,216.8
+                        L 180,96.4
+                        L 200,113.6"/>
+        </g>
     </svg>
 </div>
 
 <div>
     <h2>Area Charts</h2>
 
-    <svg width="200" height="200">
-        <!-- Paste your HW 1 solution here -->
+    <svg width="300" height="300" viewBox="0 0 300 300">
+        <g class="areas" id="aarea" transform="translate(0,300) scale(1,-1)">
+            <path d ="
+                        M 0,0
+                        L 0, 200
+                        L 20,160
+                        L 40,260
+                        L 60,180
+                        L 80,220
+                        L 100,280
+                        L 120,120
+                        L 140,80
+                        L 160,240
+                        L 180,140
+                        L 200,100
+                        L 200,0"/>
+        </g>
     </svg>
 
-    <svg width="200" height="200">
-        <!-- Paste your HW 1 solution here -->
+    <svg width="300" height="300" viewBox="0 0 300 300">
+        <g class="areas" id="barea" transform="translate(0,300) scale(1,-1)">
+            <path d ="M 0,0 L 0, 160.8
+                        L 20,139
+                        L 40,151.6
+                        L 60,176.2
+                        L 80,166.6
+                        L 100,199.2
+                        L 120,144.8
+                        L 140,85.2
+                        L 160,216.8
+                        L 180,96.4
+                        L 200,113.6
+                        L 200,0"/>
+        </g>
     </svg>
 </div>
 
 <div>
     <h2>Scatterplot</h2>
 
-    <svg width="200" height="200">
-        <!-- Paste your HW 1 solution here -->
+    <svg class = "frame" width="300" height="300" viewBox="0 0 300 300">
+        <g  id = "scatterplot" transform="translate(0,300) scale(1,-1)">
+            <circle cx="200" cy="160.8" r="5"/>
+            <circle cx="160" cy="139" r="5"/>
+            <circle cx="260" cy="151.6" r="5"/>
+            <circle cx="180" cy="176.2" r="5"/>
+            <circle cx="220" cy="166.6" r="5"/>
+            <circle cx="280" cy="199.2" r="5"/>
+            <circle cx="120" cy="144.8" r="5"/>
+            <circle cx="80" cy="85.2" r="5"/>
+            <circle cx="240" cy="216.8" r="5"/>
+            <circle cx="140" cy="96.4" r="5"/>
+            <circle cx="100" cy="113.6" r="5"/>
+        </g>
     </svg>
 </div>
 </body>
