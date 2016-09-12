@@ -70,6 +70,7 @@ function update(error, data) {
     var arects = abar.selectAll("rect")
         .data(data);
 
+    //From class tutorial
     arects.exit()
         .style("opacity",1)
         .transition()
@@ -185,8 +186,10 @@ function update(error, data) {
         .attr("d", bAreaGenerator(data));
 
     // TODO: Select and update the scatterplot points
-    //Found this example online
-    var div = d3.select("body").append("div")
+
+    /*Used the below link to understand how tool tip could be created on d3 graph
+     http://www.d3noob.org/2013/01/adding-tooltips-to-d3js-graph.html*/
+    var tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
 
@@ -208,22 +211,19 @@ function update(error, data) {
 
 
 
-
+    /*Used the below link to understand how tool tip could be created on d3 graph
+     http://www.d3noob.org/2013/01/adding-tooltips-to-d3js-graph.html*/
     circles.on("click",function(d){
             console.log("x:"+(d.a*20).toFixed(1) + ", y:"+ (d.b*20).toFixed(1));
         })
         .on("mouseover", function(d) {
-            div.transition()
-                .duration(200)
-                .style("opacity", .9);
-            div .html("x:"+(d.a*20).toFixed(1)+" y:"+ (d.b*20).toFixed(1))
+            tooltip.style("opacity",1);
+            tooltip.html("x:"+(d.a*20).toFixed(1)+" y:"+ (d.b*20).toFixed(1))
                 .style("left", (d3.event.pageX) - 30 + "px")
                 .style("top", (d3.event.pageY)- 50 + "px");
         })
         .on("mouseout", function(d) {
-            div.transition()
-                .duration(500)
-                .style("opacity", 0);
+            tooltip.style("opacity", 0);
         })
         .transition()
         .duration(3000)
@@ -235,11 +235,11 @@ function update(error, data) {
 
 
     // ****** TODO: PART IV ******
-
+    //Learnt from W3schools.com
     var rects = document.getElementsByTagName("rect");
     for(var ndx = 0; ndx < rects.length; ndx++){
-        rects[ndx].addEventListener("mouseover",mouseOver,false);// = function(){mouseOver(rects[ndx])};
-        rects[ndx].addEventListener("mouseout",mouseOut,false);//onmouseout = function () {mouseOut(rects[ndx])};
+        rects[ndx].addEventListener("mouseover",mouseOver,false);
+        rects[ndx].addEventListener("mouseout",mouseOut,false);
     }
 
     function mouseOver() {
