@@ -13,17 +13,90 @@ function updateBarChart(selectedDimension) {
         xAxisWidth = 100,
         yAxisHeight = 70;
 
-    // ******* TODO: PART I *******
+    //sorts data with respect to ascending years
+    // allWorldCupData.sort(function(a,b){
+    //     return a.year - b.year;
+    // });
 
+    // ******* TODO: PART I *******
     // Create the x and y scales; make
     // sure to leave room for the axes
+    var xscale = d3.scaleBand()
+        .range([svgBounds.width-60,0],.1);
+    xscale.domain(allWorldCupData.map(function(d){
+        //console.log(d.year);
+        return d.year;
+    }));
+
+
+    var yscale = d3.scaleLinear()
+        .domain([0, d3.max(allWorldCupData, function (d) {
+            return d[selectedDimension];
+        })])
+        .range([0,svgBounds.height-50]);
 
     // Create colorScale
+    var colorScale = d3.scaleLinear()
+        .domain([d3.min(allWorldCupData, function(d){
+            return d[selectedDimension];}),0, d3.max(allWorldCupData, function (d) {
+            return d[selectedDimension];
+        })])
+        .range(["steelblue","blue","navy"]);
 
     // Create the axes (hint: use #xAxis and #yAxis)
+    var xAxis = d3.axisBottom();
+    xAxis.scale(xscale);
+
+
+    d3.select("#xAxis")
+        .attr("transform","translate(60,350)")
+        .call(xAxis);
+
+    d3.select("#xAxis")
+        .selectAll(".tick")
+        .select("text")
+        .attr("transform","translate(-15,30) rotate(-90)");
+
+
+
+    var yAxis = d3.axisLeft();
+
+    yAxis.scale(yscale);
+
+    d3.select("#yAxis")
+        .attr("transform","translate(60,350) scale(1,-1)")
+        .transition()
+        .duration(2000)
+        .call(yAxis);
+
+    d3.select("#yAxis")
+        .selectAll(".tick")
+        .select("text")
+        .attr("transform","scale(1,-1)");
 
     // Create the bars (hint: use #bars)
+    var barsgroup = d3.select("#bars");
+    barsgroup.attr("transform","translate(60,350) scale(1,-1)");
 
+    var bars = barsgroup.selectAll("rect")
+        .data(allWorldCupData);
+
+   bars = bars.enter()
+       .append("rect")
+       .merge(bars);
+
+    bars.attr("x",function(d,i){
+        return 22*(allWorldCupData.length - i -1)+2;
+    })
+        .attr("width","20")
+        .transition()
+        .duration(2000)
+        .attr("height",function (d) {
+            return yscale(d[selectedDimension]);
+        })
+        .attr("fill",function(d){
+            return colorScale(d[selectedDimension])
+        });
 
 
     // ******* TODO: PART II *******
@@ -34,6 +107,12 @@ function updateBarChart(selectedDimension) {
 
     // Call the necessary update functions for when a user clicks on a bar.
     // Note: think about what you want to update when a different bar is selected.
+    bars.on("click",function(d){
+        d3.select(".selected").classed("selected", false);
+        d3.select(this).classed("selected",true);
+        updateInfo(d);
+        updateMap(d);
+    });
 
 
 }
@@ -49,7 +128,8 @@ function chooseData() {
     // ******* TODO: PART I *******
     //Changed the selected data when a user selects a different
     // menu item from the drop down.
-
+    var select_data = document.getElementById('dataset').value;
+    updateBarChart(select_data);
 }
 
 /**
@@ -66,6 +146,53 @@ function updateInfo(oneWorldCup) {
 
     // Hint: For the list of teams, you can create an list element for each team.
     // Hint: Select the appropriate ids to update the text content.
+    var cup_title = d3.select("#edition");
+    var host = d3.select("#host");
+    var winner = d3.select("#winner");
+    var silver = d3.select("#silver");
+    var teams_node = d3.select("#teams");
+
+
+    //var ul = teams_list.enter().append("ul") ;
+
+    // if(teams_node.select("ul").empty()) {
+    //     teams_list = teams_node.append("ul");
+    // }
+    // else{
+    //     teams_list = teams_node.select("ul");
+    // }
+
+    cup_title.text(oneWorldCup.EDITION);
+    host.text(oneWorldCup.host);
+    winner.text(oneWorldCup.winner);
+    silver.text(oneWorldCup.runner_up);
+
+
+    var teams_list =  teams_node.selectAll("ul").data([1]);
+
+    teams_list = teams_list
+        .enter()
+        .append("ul")
+        .merge(teams_list);
+
+
+    var teams = teams_list.selectAll("li").data(oneWorldCup.teams_names);
+
+    teams.exit()
+        .remove();
+
+    teams = teams
+        .enter()
+        .append("li")
+        .merge(teams);
+
+    teams.transition()
+        .duration(2000)
+        .text(function(d){
+        //console.log(d);
+        return d;
+    });
+
 
 
 }
@@ -93,7 +220,12 @@ function drawMap(world) {
     // Make sure and give your paths the appropriate class (see the .css selectors at
     // the top of the provided html file)
 
+    var path = d3.geoPath()
+        .projection(projection);
 
+    var graticule = d3.geoGraticule()
+        .extent([[105 - 87, 40], [105 + 87 + 1e-6, 82 + 1e-6]])
+        .step([2, 2]);
 }
 
 /**
