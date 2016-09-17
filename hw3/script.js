@@ -1,6 +1,20 @@
 // Global var for FIFA world cup data
 var allWorldCupData;
 
+var new_panel = d3.select("#details").append("div").style("visibility","hidden");
+
+new_panel
+    .style("border-top-style","solid")
+    .style("border-color","#d9d9d9")
+    .style("border-width", "1px")
+    // .style("float","none")
+    // .style("position","absolute")
+    // .style("display","inline-block")
+    .append("h2");
+
+var span = new_panel.append("h3")
+    .text("Participating Years")
+    .append("span");
 
 /**
  * Render and update the bar chart based on the selection of the data type in the drop-down box
@@ -181,10 +195,90 @@ function updateInfo(oneWorldCup) {
         .text(function(d){
         return d;
     });
-
-
-
 }
+
+/**
+ * Handle click on map
+ *
+ * @param d
+ */
+function map_click_event(d){
+    var id = d.id;
+    var cup_list = [];
+    //var winner_years = [];
+    //var runner_up_years = [];
+    var name = "";
+    for(var i = 0; i<allWorldCupData.length; i++) {
+        var ndx = allWorldCupData[i].teams_iso.indexOf(id);
+        var year = allWorldCupData[i].year;
+        if(ndx != -1) {
+            cup_list.push(year);
+            /*
+             if (!name.length) {
+             name = allWorldCupData[i].teams_names[ndx];
+             }
+             if (allWorldCupData[i].winner == name) {
+             winner_years.push(year);
+             }
+             if (allWorldCupData[i].runner_up == name) {
+             runner_up_years.push(year);
+             }*/
+        }
+    }
+
+    //could not display name as there was no iso to name mapping possible with the given data
+    if(cup_list.length != 0) {
+
+        new_panel.style("visibility","visible");
+
+        new_panel.select("h2")
+            .text(id);
+
+
+
+        var years_list =  span.selectAll("ul").data([1]);
+
+        years_list = years_list
+            .enter()
+            .append("ul")
+            .merge(years_list);
+
+
+        var years = years_list.selectAll("li").data(cup_list);
+
+        years.exit()
+            .remove();
+
+        years = years
+            .enter()
+            .append("li")
+            .merge(years);
+
+        years.transition()
+            .duration(2000)
+            .text(function(d){
+                return d;
+            });
+        //couldnt perform this i did not have mapping of iso to name
+        /*
+         .attr("color",function(d){
+         if(winner_years.indexOf(d)){
+         return "green";
+         }
+         else if(runner_up_years.indexOf(d)){
+         return "blue";
+         }
+         else{
+         return "black";
+         }
+         });*/
+    }
+}
+
+
+
+
+
 
 /**
  * Renders and updated the map and the highlights on top of it
@@ -229,7 +323,7 @@ function drawMap(world) {
 
     var countries = countries_data.features;
 
-    //var new_panel = d3.select("body").select("div").classed("new_panel",true);
+
 
     for(var i = 0; i<countries.length; i++) {
         //console.log(countries[i].id);
@@ -237,83 +331,12 @@ function drawMap(world) {
             .datum(countries[i])
             .attr("class", "countries")
             .attr("id",countries[i].id)
-            .attr("d", path);/*
+            .attr("d", path)
             .on("click",function(d){
-                console.log(d);
-                var id = d.id;
-                var cup_list = [];
-                var winner_years = [];
-                var runner_up_years = [];
-                var name = "";
-                for(var i = 0; i<allWorldCupData.length; i++) {
-                    var ndx = allWorldCupData[i].teams_iso.indexOf(id);
-                    var year = allWorldCupData[i].year;
-                    if(ndx != -1) {
-                        cup_list.push(year);
-                        if (!name.length) {
-                            name = allWorldCupData[i].teams_names[ndx];
-                        }
-                        if (allWorldCupData[i].winner == name) {
-                            winner_years.push(year);
-                        }
-                        if (allWorldCupData[i].runner_up == name) {
-                            runner_up_years.push(year);
-                        }
-                    }
-                }
-                //console.log(cup_list);
-                //console.log(winner_years);
-                //console.log(runner_up_years);
+                map_click_event(d);
+            });
 
-
-                if(cup_list.length != 0) {
-                    new_panel.attr("id", "details")
-                        .append("h2")
-                        .attr("id", "edition")
-                        .text(name);
-                   var span = new_panel.append("h3")
-                            .text("Participating Years")
-                            .append("span")
-                            .attr("id","teams");
-
-                    var years_list =  span.selectAll("ul").data([1]);
-
-                    years_list = years_list
-                        .enter()
-                        .append("ul")
-                        .merge(years_list);
-
-
-                    var years = years_list.selectAll("li").data(cup_list);
-
-                    years.exit()
-                        .remove();
-
-                    years = years
-                        .enter()
-                        .append("li")
-                        .merge(years);
-
-                    years.transition()
-                        .duration(2000)
-                        .text(function(d){
-                            return d;
-                        })
-                        .attr("color",function(d){
-                            if(winner_years.indexOf(d)){
-                                return "green";
-                            }
-                            else if(runner_up_years.indexOf(d)){
-                                return "blue";
-                            }
-                            else{
-                                return "black";
-                            }
-                        });
-                }
-            });*/
     }
-
 }
 
 /**
