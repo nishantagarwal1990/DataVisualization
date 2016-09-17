@@ -223,9 +223,30 @@ function drawMap(world) {
     var path = d3.geoPath()
         .projection(projection);
 
-    var graticule = d3.geoGraticule()
-        .extent([[105 - 87, 40], [105 + 87 + 1e-6, 82 + 1e-6]])
-        .step([2, 2]);
+    var graticule = d3.geoGraticule();
+
+    var map = d3.select("#map");
+
+    map.append("path")
+        .datum(graticule)
+        .attr("class", "grat")
+        .attr("fill","none")
+        .attr("d", path);
+
+    var countries_data = topojson.feature(world, world.objects.countries);
+
+    var countries = countries_data.features;
+
+    console.log(countries);
+
+    for(var i = 0; i<countries.length; i++) {
+        console.log(countries[i].id);
+        map.insert("path", ".grat")
+            .datum(countries[i])
+            .attr("class", "countries")
+            .attr("d", path);
+    }
+
 }
 
 /**
