@@ -19,11 +19,13 @@ var goalsMadeHeader = 'Goals Made',
     resultHeader = 'Result',
     totalgamesHeader = 'TotalGames',
     resultlabelHeader = 'label',
-    deltagoalsHeader = 'Delta Goals';
+    resultrankingHeader = 'ranking',
+    deltagoalsHeader = 'Delta Goals',
+    gamesHeader = 'games';
 
 /** Setup the scales*/
 var goalScale = d3.scaleLinear()
-    .range([cellBuffer, 2 * cellWidth - cellBuffer]);
+    .range([cellBuffer, 2 * cellWidth - cellBuffer/2]);
 
 /**Used for games/wins/losses*/
 var gameScale = d3.scaleLinear()
@@ -91,6 +93,171 @@ d3.csv("data/fifa-tree.csv", function (error, csvData) {
     createTree(csvData);
 });
 
+function descending(row_name){
+
+    switch(row_name) {
+
+        case "Team":
+            tableElements.sort(function (a, b) {
+                return d3.descending(a.key, b.key);
+            });
+
+            for(var i = 0; i < tableElements.length; i++ ){
+                tableElements[i].value[gamesHeader].sort(function(a,b){
+                    return d3.descending(a.key, b.key);
+                });
+            }
+
+            break;
+
+        case "Goals":
+            tableElements.sort(function (a, b) {
+                return d3.descending(a.value[deltagoalsHeader], b.value[deltagoalsHeader]);
+            });
+
+            for(var i = 0; i < tableElements.length; i++ ){
+                tableElements[i].value[gamesHeader].sort(function(a,b){
+                    return d3.descending(a.value[goalsMadeHeader] - a.value[goalsConcededHeader], b.value[goalsMadeHeader] - b.value[goalsConcededHeader]);
+                });
+            }
+
+            break;
+
+        case "Round/Result":
+            tableElements.sort(function (a, b) {
+                return d3.descending(a.value[resultHeader][resultrankingHeader], b.value[resultHeader][resultrankingHeader]);
+            });
+
+            for(var i = 0; i < tableElements.length; i++ ){
+                tableElements[i].value[gamesHeader].sort(function(a,b){
+                    return d3.descending(a.value[resultHeader][resultrankingHeader], b.value[resultHeader][resultrankingHeader]);
+                });
+            }
+
+            break;
+
+        case "Wins":
+            tableElements.sort(function (a, b) {
+                return d3.descending(a.value[winsHeader], b.value[winsHeader]);
+            });
+            break;
+
+        case "Losses":
+            tableElements.sort(function (a, b) {
+                return d3.descending(a.value[lossesHeader], b.value[lossesHeader]);
+            });
+            break;
+        case "Total Games":
+            tableElements.sort(function (a, b) {
+                return d3.descending(a.value[totalgamesHeader], b.value[totalgamesHeader]);
+            });
+            break;
+
+        default : console.log("Something Went Wrong In Descending!!!!!")
+    }
+
+}
+
+function ascending(row_name){
+
+    switch(row_name) {
+
+        case "Team":
+            tableElements.sort(function (a, b) {
+                return d3.ascending(a.key, b.key);
+            });
+
+            for(var i = 0; i < tableElements.length; i++ ){
+                tableElements[i].value[gamesHeader].sort(function(a,b){
+                    return d3.ascending(a.key, b.key);
+                });
+            }
+
+            break;
+
+        case "Goals":
+            tableElements.sort(function (a, b) {
+                return d3.ascending(a.value[deltagoalsHeader], b.value[deltagoalsHeader]);
+            });
+
+            for(var i = 0; i < tableElements.length; i++ ){
+                tableElements[i].value[gamesHeader].sort(function(a,b){
+                    return d3.ascending(a.value[goalsMadeHeader] - a.value[goalsConcededHeader], b.value[goalsMadeHeader] - b.value[goalsConcededHeader]);
+                });
+            }
+
+            break;
+
+        case "Round/Result":
+            tableElements.sort(function (a, b) {
+                return d3.ascending(a.value[resultHeader][resultrankingHeader], b.value[resultHeader][resultrankingHeader]);
+            });
+
+            for(var i = 0; i < tableElements.length; i++ ){
+                tableElements[i].value[gamesHeader].sort(function(a,b){
+                    return d3.ascending(a.value[resultHeader][resultrankingHeader], b.value[resultHeader][resultrankingHeader]);
+                });
+            }
+
+            break;
+
+        case "Wins":
+            tableElements.sort(function (a, b) {
+                return d3.ascending(a.value[winsHeader], b.value[winsHeader]);
+            });
+            break;
+
+        case "Losses":
+            tableElements.sort(function (a, b) {
+                return d3.ascending(a.value[lossesHeader], b.value[lossesHeader]);
+            });
+            break;
+        case "Total Games":
+            tableElements.sort(function (a, b) {
+                return d3.ascending(a.value[totalgamesHeader], b.value[totalgamesHeader]);
+            });
+            break;
+
+        default : console.log("Something Went Wrong In Ascending!!!!!")
+    }
+}
+
+var row;
+var order;
+
+function sort_table(row_name){
+
+    //console.log(tableElements.length);
+
+    collapseList();
+
+    //console.log(tableElements.length);
+
+    if(row == row_name){
+        if(order == "ascending"){
+            descending(row_name);
+            order = "descending";
+        }
+        else{
+            ascending(row_name);
+            order = "ascending";
+        }
+    }
+    else{
+        row = row_name;
+        order = "descending";
+
+        if(row_name == "Team"){
+            ascending(row_name);
+        }
+        else {
+            descending(row_name);
+        }
+    }
+
+    updateTable();
+}
+
 /**
  * Creates a table skeleton including headers that when clicked allow you to sort the table by the chosen attribute.
  * Also calculates aggregate values of goals, wins, losses and total games as a function of country.
@@ -129,7 +296,18 @@ function createTable() {
         .call(xAxis);
 
     tableElements = teamData;
-// ******* TODO: PART V *******
+    // ******* TODO: PART V *******
+
+    var header = d3.select("thead").select("tr");
+
+    header.select("th")
+        .on("click",function(){
+            sort_table(this.innerText.trim());
+        });
+    header.selectAll("td")
+        .on("click",function(){
+            sort_table(this.innerText.trim());
+        });
 
 }
 
@@ -146,6 +324,13 @@ function updateTable() {
     tr.exit().remove();
 
     tr = tr.enter().append("tr").merge(tr);
+
+    tr.on("mouseover",function(d){
+        updateTree(d);
+    })
+        .on("mouseout",function(d){
+            clearTree();
+        });
 
     var th = tr.selectAll("th").data(function(d){
         return [{'type': d.value.type, 'vis': 'text', 'value': d.key}];
@@ -284,17 +469,24 @@ function updateTable() {
 
     goals_col_bar = goals_col_bar.enter()
         .append("rect")
-        .attr("height",barHeight/2)
-        .attr("y",(cellHeight/2)-5)
         .classed("goalBar",true)
         .merge(goals_col_bar);
 
 
     var goals_circle = goals_col_svg.selectAll("circle").data(function(d){
-        return [
-            {'type':d.type,'value':[d.value[0],d.value[2]]},
-            {'type':d.type,'value':[d.value[1],d.value[2]]}
-        ];
+        if(d.type == "aggregate") {
+            return [
+                {'type': d.type, 'value': [d.value[0], d.value[2]]},
+                {'type': d.type, 'value': [d.value[1], d.value[2]]}
+            ];
+        }
+        else{
+            var delta = d.value[0] - d.value[1];
+            return [
+                {'type': d.type, 'value': [d.value[0], delta]},
+                {'type': d.type, 'value': [d.value[1], delta]}
+            ];
+        }
     });
 
     goals_circle.exit().remove();
@@ -313,13 +505,28 @@ function updateTable() {
             return goalScale(Math.max(d.value[0],d.value[1])) - goalScale(Math.min(d.value[0],d.value[1]));
         })
         .attr("fill",function(d){
-            return goalColorScale(d.value[2]);
+            if(d.type == "aggregate")
+                return goalColorScale(d.value[2]);
+            else
+                return goalColorScale(d.value[0]-d.value[1]);
+        })
+        .attr("height",function(d){
+            if(d.type == "aggregate")
+                return barHeight/2;
+            else
+                return barHeight/4;
+        })
+        .attr("y",function(d){
+            if(d.type == "aggregate")
+                return (cellHeight/2)-5;
+            else
+                return (cellHeight/2)-2;
         });
 
     goals_circle.attr("cx",function(d){
                 return goalScale(d.value[0]);
         })
-        .attr("fill",function(d,i){
+        .attr("stroke",function(d,i){
             if (d.value[1] == 0){
                 return "grey";
             }
@@ -327,7 +534,23 @@ function updateTable() {
                 if(i == 0)
                     return "#034e7b";
                 else
-                    return "#cb181d"
+                    return "#cb181d";
+            }
+        })
+        .attr("fill",function(d,i){
+            if (d.type == "aggregate") {
+                if (d.value[1] == 0) {
+                    return "grey";
+                }
+                else {
+                    if (i == 0)
+                        return "#034e7b";
+                    else
+                        return "#cb181d";
+                }
+            }
+            else{
+                return "white";
             }
         });
 };
@@ -340,7 +563,13 @@ function updateTable() {
 function collapseList() {
 
     // ******* TODO: PART IV *******
-
+    var i = 0;
+    while(i < tableElements.length -1){
+        if(tableElements[i].value.type == "aggregate" && tableElements[i+1].value.type == "game"){
+            tableElements.splice(i+1,tableElements[i].value[gamesHeader].length);
+        }
+        i++;
+    }
 
 }
 
@@ -354,21 +583,21 @@ function updateList(i) {
     if(tableElements[i].value.type == 'aggregate'){
         if(i+1 < tableElements.length){
             if(tableElements[i+1].value.type == 'aggregate'){
-                for(var j = 0; j < tableElements[i].value['games'].length; j++) {
-                    tableElements.splice(i +j+ 1, 0, tableElements[i].value['games'][j]);
+                for(var j = 0; j < tableElements[i].value[gamesHeader].length; j++) {
+                    tableElements.splice(i +j+ 1, 0, tableElements[i].value[gamesHeader][j]);
                 }
             }
             else{
-                tableElements.splice(i+1,tableElements[i].value['games'].length);
+                tableElements.splice(i+1,tableElements[i].value[gamesHeader].length);
             }
         }
         else if(i == tableElements.length-1){
-            for(var j = 0; j < tableElements[i].value['games'].length; j++) {
-                tableElements.splice(i +j+ 1, 0, tableElements[i].value['games'][j]);
+            for(var j = 0; j < tableElements[i].value[gamesHeader].length; j++) {
+                tableElements.splice(i +j+ 1, 0, tableElements[i].value[gamesHeader][j]);
             }
         }
     }
-    
+
     updateTable();
 }
 
@@ -380,7 +609,107 @@ function updateList(i) {
 function createTree(treeData) {
 
     // ******* TODO: PART VI *******
+    //console.log(treeData);
+    var root = d3.stratify()
+        .id(function(d) { return d.id; })
+        .parentId(function(d) {
+            var ndx = parseInt(d.ParentGame);
+            if(!isNaN(ndx)) {
+                //console.log(ndx);
+                return treeData[ndx].id;
+            }
+        })
+        (treeData);
 
+    var tree_layout = d3.select("#tree");
+    var tree_layout_svg = d3.select(tree_layout.node().parentNode);
+
+    var tree_layout_height = tree_layout_svg.attr("height");
+    var tree_layout_width = tree_layout_svg.attr("width");
+
+
+    tree_layout.attr("transform","translate(40,0)")
+
+    var padding = 150;
+
+    var root_padding = 30;
+
+    var tree = d3.tree()
+        .size([tree_layout_height - padding, tree_layout_width - padding]);
+
+    var nodes = tree(root);
+
+
+    //Learnt from Example in https://bl.ocks.org/d3noob/5537fe63086c4f100114f87f124850dd
+    // adds the links between the nodes
+    //var link = tree_layout.append("g").classed("link",true);
+
+    var paths = tree_layout.selectAll("path").data( nodes.descendants().slice(1))
+        .enter().append("path")
+        .classed("link",true);
+
+    paths.attr("d", function(d) {
+
+            if(d.parent.parent == null) {
+                return "M" + d.y  + "," + d.x
+                    + "C" + (d.y + d.parent.y) / 2 + "," + d.x
+                    + " " + (d.y + d.parent.y) / 2 + "," + d.parent.x
+                    + " " + (d.parent.y + root_padding) + "," + d.parent.x;
+            }
+            return "M" + d.y + "," + d.x
+                + "C" + (d.y + d.parent.y) / 2 + "," + d.x
+                + " " + (d.y + d.parent.y) / 2 + "," + d.parent.x
+                + " " + d.parent.y + "," + d.parent.x;
+        });
+
+
+    var node = tree_layout.selectAll("g").data(nodes.descendants())
+        .enter()
+        .append("g")
+        .attr("class",function(d){
+            return "node";
+        });
+
+    //although I assign class winner to the winner node. The color will not be filled as chrome does not support
+    //css styling of svg circle. So I am explicitly filling the color
+    node.append("circle")
+        .attr("r",5)
+        .attr("cx",function(d){
+            if(d.parent == null)
+                return d.y+root_padding;
+            return d.y;
+        })
+        .attr("cy",function(d){
+            return d.x;
+        })
+        .style("fill",function(d){
+            if(d.data.Wins == "1")
+                return "#364e74";
+        })
+        .attr("class",function(d){
+            if(d.data.Wins == "1")
+                return "winner";
+        });
+
+    node.append("text")
+        .attr("y", function(d) {
+            return d.x;
+        })
+        .attr("dy","0.20em")
+        .attr("x", function(d) {
+            if(d.parent == null)
+                return d.y+30;
+            return d.y;
+        })
+        .attr("dx",function(d){
+            return d.children ? "-0.35em":"0.35em";
+        })
+        .style("text-anchor", function(d) {
+            return d.children ? "end" : "start";
+        })
+        .text(function(d) {
+            return d.data.Team;
+        });
 
 };
 
@@ -393,8 +722,6 @@ function createTree(treeData) {
 function updateTree(row) {
 
     // ******* TODO: PART VII *******
-
-
 }
 
 /**
