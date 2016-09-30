@@ -592,9 +592,9 @@ function updateTable() {
             }
             else{
                 if(i == 0)
-                    return "#034e7b";
+                    return goalColorScale(d.value[0]);
                 else
-                    return "#cb181d";
+                    return goalColorScale(-d.value[0]);
             }
         })
         .attr("fill",function(d,i){
@@ -604,9 +604,9 @@ function updateTable() {
                 }
                 else {
                     if (i == 0)
-                        return "#034e7b";
+                        return goalColorScale(d.value[0]);
                     else
-                        return "#cb181d";
+                        return goalColorScale(-d.value[0]);
                 }
             }
             else{
@@ -787,18 +787,22 @@ function updateTree(row) {
     // ******* TODO: PART VII *******
 
     var highlight = d3.selectAll(".link").filter(function(d){
-        return row.key == d.data.Team  && d.data.Wins == "1";
+        if(row.value.type == 'aggregate')
+            return row.key == d.data.Team  && d.data.Wins == "1";
+        else
+            return (row.key == d.data.Team && row.value.Opponent == d.data.Opponent) || (row.key == d.data.Opponent && row.value.Opponent == d.data.Team);
     });
 
     highlight.classed("selected",true);
 
     var label = d3.select("#tree").selectAll("text").filter(function(d){
-        return row.key == d.data.Team;
+        if(row.value.type == 'aggregate')
+            return row.key == d.data.Team;
+        else
+            return (row.key == d.data.Team && row.value.Opponent == d.data.Opponent) || (row.key == d.data.Opponent && row.value.Opponent == d.data.Team);
     });
 
-    label.classed("selectedlabel",true);
-    label.attr("fill","#be2714");
-    label.style("font-weight", "bolder");
+    label.classed("selectedLabel",true);
 
 }
 
@@ -808,16 +812,9 @@ function updateTree(row) {
 function clearTree() {
 
     // ******* TODO: PART VII *******
-    var selected = d3.selectAll(".selected");
-    selected.classed("selected",false);
-    selected.classed("link",true);
+    d3.selectAll(".selected").classed("selected",false);
 
-    var selectedlabel = d3.selectAll(".selectedlabel");
-    selectedlabel.attr("fill",null);
-    selectedlabel.style("font-weight", null);
-    selectedlabel.classed("selectedlabel",false);
-
-
+    d3.selectAll(".selectedLabel").classed("selectedLabel",false);
 
 }
 
