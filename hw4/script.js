@@ -55,29 +55,91 @@ var rank = {
 
 
 
-//For the HACKER version, comment out this call to d3.json and implement the commented out
-// d3.csv call below.
+// //For the HACKER version, comment out this call to d3.json and implement the commented out
+// // d3.csv call below.
+//
+// d3.json('data/fifa-matches.json',function(error,data){
+//     teamData = data;
+//     createTable();
+//     updateTable();
+// })
 
-d3.json('data/fifa-matches.json',function(error,data){
-    teamData = data;
+
+// ********************** HACKER VERSION ***************************
+/**
+ * Loads in fifa-matches.csv file, aggregates the data into the correct format,
+ * then calls the appropriate functions to create and populate the table.
+ *
+ */
+d3.csv("data/fifa-matches.csv", function (error, csvData) {
+
+   // ******* TODO: PART I *******
+
+    teamData = d3.nest()
+        .key(function (d) {
+            return d.Team;
+        })
+        .rollup(function (leaves) {
+            //console.log(leaves);
+            var wins = d3.sum(leaves,function(l){return l.Wins});
+            var losses = d3.sum(leaves,function (l) { return l.Losses;});
+            var goalsmade = d3.sum(leaves,function(l){ return l[goalsMadeHeader];});
+            var goalsconceded = d3.sum(leaves,function(l){ return l[goalsConcededHeader];});
+            var deltagoals = d3.sum(leaves,function(l){ return l[deltagoalsHeader];});
+            var ranking = d3.max(leaves,function(l){
+                    return rank[l[resultHeader]];
+            });
+
+            var label;
+            for(var key in rank) {
+                if (rank[key] == ranking) {
+                    label = key;
+                    break;
+                }
+            }
+
+            var games = d3.nest()
+                .key(function(d){
+                    return d.Opponent;
+                })
+                .rollup(function(leaf){
+                    //console.log(leaf);
+                    return {
+                        'Wins': [],
+                        'Losses': [],
+                        'Goals Made': leaf[0][goalsMadeHeader],
+                        'Goals Conceded': leaf[0][goalsConcededHeader],
+                        'Delta Goals': [],
+                        'Result': {'label':leaf[0][resultHeader],'ranking':rank[leaf[0][resultHeader]]},
+                        'type': "game",
+                        'Opponent': leaf[0].Team
+                    };
+                })
+                .entries(leaves);
+
+            games.sort(function(a,b){
+                return d3.descending(a.value[resultHeader][resultrankingHeader],b.value[resultHeader][resultrankingHeader]);
+            });
+
+            return {
+                'Wins': wins,
+                'Losses': losses,
+                'Goals Made': goalsmade,
+                'Goals Conceded': goalsconceded,
+                'Delta Goals': deltagoals,
+                'Result': {'label':label,'ranking':ranking},
+                'type': "aggregate",
+                'TotalGames' : leaves.length,
+                'games': games
+            };
+        })
+        .entries(csvData);
+
+
     createTable();
     updateTable();
-})
-
-
-// // ********************** HACKER VERSION ***************************
-// /**
-//  * Loads in fifa-matches.csv file, aggregates the data into the correct format,
-//  * then calls the appropriate functions to create and populate the table.
-//  *
-//  */
-// d3.csv("data/fifa-matches.csv", function (error, csvData) {
-//
-//    // ******* TODO: PART I *******
-//
-//
-// });
-// // ********************** END HACKER VERSION ***************************
+});
+// ********************** END HACKER VERSION ***************************
 
 /**
  * Loads in the tree information from fifa-tree.csv and calls createTree(csvData) to render the tree.
@@ -227,11 +289,9 @@ var order;
 
 function sort_table(row_name){
 
-    //console.log(tableElements.length);
 
     collapseList();
 
-    //console.log(tableElements.length);
 
     if(row == row_name){
         if(order == "ascending"){
@@ -266,7 +326,6 @@ function sort_table(row_name){
 function createTable() {
 
 // ******* TODO: PART II *******
-    //console.log(teamData);
 
     goalScale.domain([0,d3.max(teamData,function(d){
         //console.log(d.value["Goals Made"]);
@@ -326,6 +385,7 @@ function updateTable() {
     tr = tr.enter().append("tr").merge(tr);
 
     tr.on("mouseover",function(d){
+
         updateTree(d);
     })
         .on("mouseout",function(d){
@@ -609,14 +669,12 @@ function updateList(i) {
 function createTree(treeData) {
 
     // ******* TODO: PART VI *******
-    //console.log(treeData);
+
     var root = d3.stratify()
         .id(function(d) { return d.id; })
         .parentId(function(d) {
-            var ndx = parseInt(d.ParentGame);
-            if(!isNaN(ndx)) {
-                //console.log(ndx);
-                return treeData[ndx].id;
+            if(d.ParentGame) {
+                return treeData[d.ParentGame].id;
             }
         })
         (treeData);
@@ -627,11 +685,15 @@ function createTree(treeData) {
     var tree_layout_height = tree_layout_svg.attr("height");
     var tree_layout_width = tree_layout_svg.attr("width");
 
-
+    //This makes sure that the tree is well formed and not clipped off from any angle.
     tree_layout.attr("transform","translate(40,0)")
 
+    //This is needed since we want space to add the text within svg.
+    //So tree is padded.
     var padding = 150;
 
+    //This is needed as no matter what we do the root will always be at 0. So we have to move it so that
+    //the root comes slightly below and is well adjusted.
     var root_padding = 30;
 
     var tree = d3.tree()
@@ -643,6 +705,7 @@ function createTree(treeData) {
     //Learnt from Example in https://bl.ocks.org/d3noob/5537fe63086c4f100114f87f124850dd
     // adds the links between the nodes
     //var link = tree_layout.append("g").classed("link",true);
+
 
     var paths = tree_layout.selectAll("path").data( nodes.descendants().slice(1))
         .enter().append("path")
@@ -722,6 +785,21 @@ function createTree(treeData) {
 function updateTree(row) {
 
     // ******* TODO: PART VII *******
+
+    var highlight = d3.selectAll(".link").filter(function(d){
+        return row.key == d.data.Team  && d.data.Wins == "1";
+    });
+
+    highlight.classed("selected",true);
+
+    var label = d3.select("#tree").selectAll("text").filter(function(d){
+        return row.key == d.data.Team;
+    });
+
+    label.classed("selectedlabel",true);
+    label.attr("fill","#be2714");
+    label.style("font-weight", "bolder");
+
 }
 
 /**
@@ -730,7 +808,16 @@ function updateTree(row) {
 function clearTree() {
 
     // ******* TODO: PART VII *******
-    
+    var selected = d3.selectAll(".selected");
+    selected.classed("selected",false);
+    selected.classed("link",true);
+
+    var selectedlabel = d3.selectAll(".selectedlabel");
+    selectedlabel.attr("fill",null);
+    selectedlabel.style("font-weight", null);
+    selectedlabel.classed("selectedlabel",false);
+
+
 
 }
 
