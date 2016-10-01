@@ -103,7 +103,7 @@ d3.csv("data/fifa-matches.csv", function (error, csvData) {
                     return d.Opponent;
                 })
                 .rollup(function(leaf){
-                    //console.log(leaf);
+
                     return {
                         'Wins': [],
                         'Losses': [],
@@ -703,9 +703,6 @@ function createTree(treeData) {
 
 
     //Learnt from Example in https://bl.ocks.org/d3noob/5537fe63086c4f100114f87f124850dd
-    // adds the links between the nodes
-    //var link = tree_layout.append("g").classed("link",true);
-
 
     var paths = tree_layout.selectAll("path").data( nodes.descendants().slice(1))
         .enter().append("path")
@@ -729,12 +726,14 @@ function createTree(treeData) {
     var node = tree_layout.selectAll("g").data(nodes.descendants())
         .enter()
         .append("g")
-        .attr("class",function(d){
-            return "node";
+        .classed("node",true)
+        .classed("winner",function(d){
+            if(d.data.Wins == "1")
+                return true;
+            return false;
         });
 
-    //although I assign class winner to the winner node. The color will not be filled as chrome does not support
-    //css styling of svg circle. So I am explicitly filling the color
+
     node.append("circle")
         .attr("r",5)
         .attr("cx",function(d){
@@ -744,14 +743,6 @@ function createTree(treeData) {
         })
         .attr("cy",function(d){
             return d.x;
-        })
-        .style("fill",function(d){
-            if(d.data.Wins == "1")
-                return "#364e74";
-        })
-        .attr("class",function(d){
-            if(d.data.Wins == "1")
-                return "winner";
         });
 
     node.append("text")
