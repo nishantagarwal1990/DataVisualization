@@ -131,7 +131,7 @@ Next, we'll implement a cartogram that also communicates the winning percentage 
  
 Again, initialize the chart. 
 
-How do we lay these tiles out? Assume that you are given a matrix. where each cell corresponds to a tile. Some tiles are filled in (the states), others are not (i.e., remain white). To position a tile, you require its row and column information within this matrix. Within your data, there are attributes named `row` and `column` for each state. Taken together, these row and column values define the layout. 
+How do we lay these tiles out? Assume that you are given a matrix. where each cell corresponds to a tile. Some tiles are filled in (the states), others are not (i.e., remain white). To position a tile, you require its row and column information within this matrix. Within your data, there are attributes named `row` and `space` for each state. Taken together, these row and column values define the layout. 
 There are 8 rows and 12 columns in this matrix. Using this information, you should be able to find the values of height and width that each tile can take. Once you have these values, you can position the tile using the row and column information to drive the *x* and *y* attribute values. You can use `.tile` class to style your tiles.
 
 Color-code the tiles by win percentage using the global `colorScale`, and display the abbreviation of the state and the number of its electoral votes. The text elements in this chart can be styled using the `.tilestext` class and combine this with the `chooseClass` method to color your text wherever necessary.
@@ -184,7 +184,7 @@ Implement a brush on the year chart to select a range of election years. Use the
 
 ## Extra Credit 2: Implement Shift Chart
 
-Implement your best shift chart design to visualize the shift of voters for the selected states. You can choose how many elections to include, if you're not doing Extra Credit 1. Excellent implementations should work for many elections (5-10, more with scrolling) and should listen to the year brush. The yearly shift value is given by the attribute `shift` and `shiftDirection`  in the data. The shift value to the right indicates voters shift towards being more Republican and the shift value to the left indicates the state's shift towards being more Democrat.
+Implement your best shift chart design to visualize the shift of voters for the selected states. You can choose how many elections to include, if you're not doing Extra Credit 1. Excellent implementations should work for many elections (5-10, more with scrolling) and should listen to the year brush. The yearly shift value is given by the attribute `shift` and `shift tooltip`  in the data. The shift value to the right indicates voters shift towards being more Republican and the shift value to the left indicates the state's shift towards being more Democrat.
 
 ## DONE! 
 
