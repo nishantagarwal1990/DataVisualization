@@ -92,6 +92,47 @@ YearChart.prototype.update = function(){
     //Election information corresponding to that year should be loaded and passed to
     // the update methods of other visualizations
 
+    var xScale = d3.scaleBand()
+        .domain(self.electionWinners.map(function(d){ return d.YEAR; }))
+        .rangeRound([0, self.svgWidth]).padding(20);
+
+    self.svg.append("line")
+        .classed("lineChart",true)
+        .attr("x1",0)
+        .attr("y1",self.svgHeight/2)
+        .attr("x2",self.svgWidth)
+        .attr("y2",self.svgHeight/2);
+
+    var yeargroup = self.svg.selectAll("g").data(self.electionWinners);
+
+    var groups = yeargroup.enter().append("g")
+        .attr("transform",function(d,i){
+            return "translate("+(i*xScale.step()+xScale.step())+","+(self.svgHeight/2)+")"
+        });
+
+
+    groups.append("circle")
+        .attr("r",10)
+        .attr("class",function(d,i){
+            return self.chooseClass(d.PARTY);
+        })
+        .on("click",function(d){
+            self.svg.selectAll("circle").classed("highlighted",false);
+            d3.select(this).classed("highlighted",true);
+            var file = "data/year_timeline_"+d.YEAR+".csv";
+            d3.csv(file,function(error,data){
+                self.tileChart.update(data,self.colorScale);
+                self.electoralVoteChart.update(data,self.colorScale);
+                self.votePercentageChart.update(data,self.colorScale);
+            })
+        });
+
+    groups.append("text")
+        .classed("yeartext",true)
+        .attr("dy","30")
+        .text(function(d){
+            return d.YEAR;
+        });
 
     //******* TODO: EXTRA CREDIT *******
 
