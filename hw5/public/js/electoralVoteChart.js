@@ -4,9 +4,10 @@
  *
  * @param shiftChart an instance of the ShiftChart class
  */
-function ElectoralVoteChart(){
+function ElectoralVoteChart(shiftChart){
 
     var self = this;
+    self.shiftChart = shiftChart;
     self.init();
 };
 
@@ -111,63 +112,18 @@ ElectoralVoteChart.prototype.update = function(electionResult, colorScale){
 
     });
 
-    console.log(electionResult);
+    //console.log(electionResult);
 
-    var partyData = d3.nest()
-        .key(function (d) {
-            return d.State_Winner;
-        })
-        .sortKeys(function(a,b) { return priority_order.indexOf(a) - priority_order.indexOf(b); })
-        .entries(electionResult);
 
-    //console.log(partyData);
+    var group = self.svg.append("g").classed("electoralVotes",true);
 
-    for(var i = 0; i<partyData.length; i++){
-        if(partyData[i].key == "D" ){
-            partyData[i].values.sort(function(a,b){
-                return d3.descending(Math.abs(parseFloat(a.RD_Difference)),Math.abs(parseFloat(b.RD_Difference)));
-            });
-        }
-        if(partyData[i].key == "I"){
-            partyData[i].values.sort(function(a,b){
-                return d3.descending(parseFloat(a.Total_EV),parseFloat(b.Total_EV));
-            });
-        }
-        if(partyData[i].key == "R"){
-            partyData[i].values.sort(function(a,b){
-                return d3.ascending(parseFloat(a.RD_Difference),parseFloat(b.RD_Difference));
-            });
-        }
-    }
-
-    var stackedgroups = self.svg.selectAll("g").data(partyData);
-
-    stackedgroups.exit().remove();
-
-    stackedgroups = stackedgroups.enter().append("g").merge(stackedgroups);
-
-    var pos = 0;
-
-    stackedgroups.attr("transform",function(d,i){
-        if (i != 0) {
-            pos += d3.sum(partyData[i-1].values, function (x) {
-                var w = parseInt(x.Total_EV);
-                return widthScale(w);
-            });
-        }
-        return "translate("+(pos)+",0)";
-    });
-
-    var stackedbar = stackedgroups.selectAll("rect").data(function(d){
-        return d.values;
-    });
+    var stackedbar = group.selectAll("rect").data(electionResult);
 
     stackedbar.exit().remove();
 
     stackedbar = stackedbar.enter().append("rect")
         .attr("height",30)
         .attr("y",self.svgHeight/2)
-        .classed("electoralVotes",true)
         .merge(stackedbar);
 
 
@@ -175,10 +131,10 @@ ElectoralVoteChart.prototype.update = function(electionResult, colorScale){
     var prev = 0;
 
     stackedbar.attr("x",function(d,i){
-        if(i == 0){
-            width_till_now = 0;
-            prev = 0;
-        }
+        // if(i == 0){
+        //     width_till_now = 0;
+        //     prev = 0;
+        // }
         var w = widthScale(parseInt(d.Total_EV));
 
         if(width_till_now == 0) {
@@ -201,35 +157,48 @@ ElectoralVoteChart.prototype.update = function(electionResult, colorScale){
             return colorScale(d.RD_Difference);
         });
 
-    var stackedtext = self.svg.selectAll("text").data(partyData);
+
+    var data = [{key:"D",Total_EV:electionResult[0].D_EV_Total},
+                {key:"R",Total_EV:electionResult[0].R_EV_Total}];
+
+    if(electionResult[0].I_EV_Total != ""){
+        var I_data = {key:"I",Total_EV:electionResult[0].I_EV_Total};
+        data.splice(0,0,I_data);
+    }
+
+
+    var stackedtext = self.svg.selectAll("text").data(data);
 
     stackedtext.exit().remove();
 
     stackedtext = stackedtext.enter().append("text").merge(stackedtext);
 
-    //console.log(stackedtext);
+
+    var pos = 0;
+
+    for(var i = 0; i < electionResult.length;i++){
+        if(electionResult[i].State_Winner == 'D')
+            break;
+        pos += widthScale(parseInt(electionResult[i].Total_EV));
+
+    }
 
     stackedtext.attr("class",function(d){
         return "electoralVoteText "+self.chooseClass(d.key);
     })
         .text(function(d){
-            return d3.sum(d.values,function(x){
-                return parseInt(x.Total_EV);
-            });
+            return parseInt(d.Total_EV);
+
         })
         .attr("x",function(d,i) {
             if (d.key == 'R') {
                 return self.svgWidth;
             }
             else{
-                if(partyData.length == 3){
+                if(data.length == 3){
                     if(d.key == 'I')
                         return 0;
                     else{
-                        var pos = d3.sum(partyData[0].values, function (x) {
-                            var w = parseInt(x.Total_EV);
-                            return widthScale(w);
-                        });
                         return pos;
                     }
                 }else{
@@ -263,9 +232,18 @@ ElectoralVoteChart.prototype.update = function(electionResult, colorScale){
         if(!d3.event.sourceEvent) return;
         if(!d3.event.selection) return;
         var s = d3.event.selection;
-        console.log(s);
 
-
+        var value = 0;
+        var prev = 0;
+        var selected_states = [];
+        for(var j = 0; j<electionResult.length; j++){
+            var d = electionResult[j];
+            prev = value;
+            value += widthScale(d.Total_EV);
+            if(s[0] <= prev && value <= s[1])
+                selected_states.push(d);
+        }
+        self.shiftChart.update(selected_states);
     }
 
     var width = self.svgWidth;

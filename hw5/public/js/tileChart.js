@@ -109,7 +109,7 @@ TileChart.prototype.update = function(electionResult, colorScale){
               {"nominee": d.D_Nominee_prop,"votecount": d.D_Votes,"percentage": d.D_Percentage,"party":"D"} ,
               {"nominee": d.R_Nominee_prop,"votecount": d.R_Votes,"percentage": d.R_Percentage,"party":"R"}
               ]
-              }
+              };
 
               if(d.I_Votes != "") {
                   var I_data = {
@@ -132,7 +132,7 @@ TileChart.prototype.update = function(electionResult, colorScale){
         .attr("class", "legendQuantile");
 
     var legendQuantile = d3.legendColor()
-        .shapeWidth(60)
+        .shapeWidth(80)
         .cells(10)
         .orient('horizontal')
         .scale(colorScale);
@@ -153,11 +153,11 @@ TileChart.prototype.update = function(electionResult, colorScale){
     //then, vote percentage and number of votes won by each party.
     //HINT: Use the .republican, .democrat and .independent classes to style your elements.
 
-    //console.log(electionResult);
+    //console.log(electionResult[1]);
 
     d3.select(".legendQuantile")
-        .style("font-size","10px")
-        .attr("transform","translate(50,0)")
+        .style("font-size","12px")
+        .attr("transform","translate("+(self.svgWidth/8)+",0)")
         .call(legendQuantile);
 
     var width = self.svgWidth/12;
@@ -182,6 +182,9 @@ TileChart.prototype.update = function(electionResult, colorScale){
             return d.Row*height;
         })
         .attr("fill",function(d){
+            if(d.State_Winner == 'I'){
+                return "#45AD6A";
+            }
             return colorScale(parseFloat(d.RD_Difference));
         })
         .on("mouseover",tip.show)
@@ -196,6 +199,7 @@ TileChart.prototype.update = function(electionResult, colorScale){
         .merge(tilestext);
 
     tilestext.selectAll("tspan").remove();
+
     //http://stackoverflow.com/questions/19791143/how-to-dynamically-display-a-multiline-text-in-d3-js
 
     tilestext.attr("y",function(d){

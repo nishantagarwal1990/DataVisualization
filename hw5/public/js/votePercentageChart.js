@@ -77,10 +77,19 @@ VotePercentageChart.prototype.update = function(electionResult,colorScale){
         })
         .html(function(d) {
             // populate data in the following format
-            console.log(d);
+            var d = electionResult[0];
               tooltip_data = {
-              "result": d
+              "result": [
+                  {"nominee": d.D_Nominee_prop,"votecount": d.D_Votes_Total,"percentage": parseFloat(d.D_PopularPercentage),"party":"D"} ,
+                  {"nominee": d.R_Nominee_prop,"votecount": d.R_Votes_Total,"percentage": parseFloat(d.R_PopularPercentage),"party":"R"}
+              ]
               };
+
+              if(d.I_Votes_Total != ""){
+
+                  var I_data = {"nominee": d.I_Nominee_prop,"votecount": d.I_Votes_Total,"percentage": parseFloat(d.I_PopularPercentage),"party":"I"};
+                  tooltip_data.result.splice(0,0,I_data);
+              }
               //console.log(tooltip_data)
              // pass this as an argument to the tooltip_render function then,
              // return the HTML content returned from that method.
@@ -139,7 +148,6 @@ VotePercentageChart.prototype.update = function(electionResult,colorScale){
                 ];
     }
 
-    //self.svg.call(tip);
 
     var stackedgroups = self.svg.selectAll("g").data(data);
 
@@ -159,6 +167,7 @@ VotePercentageChart.prototype.update = function(electionResult,colorScale){
         .merge(stackedbars);
 
     stackedbars.call(tip);
+
     var width_till_now = 0;
     var prev = 0;
 
@@ -180,9 +189,9 @@ VotePercentageChart.prototype.update = function(electionResult,colorScale){
         })
         .attr("class",function(d){
             return "votesPercentage "+self.chooseClass(d.party);
-        });
-        // .on("mouseover",tip.show)
-        // .on("mouseout",tip.hide);
+        })
+        .on("mouseover",tip.show)
+        .on("mouseout",tip.hide);
 
     var stackedtext = stackedgroups.selectAll("text").data(function(d){
         return [{party:d.party,nominee:d.nominee,percentage:d.percentage},
@@ -217,7 +226,7 @@ VotePercentageChart.prototype.update = function(electionResult,colorScale){
                     else {
                         if(i==1)
                             return widthScale(data[0].percentage) + (widthScale(data[1].percentage)/2) - 20;
-                        return widthScale(data[0].percentage);
+                        return widthScale(data[0].percentage)+20;
                     }
                 } else {
                     return 0;

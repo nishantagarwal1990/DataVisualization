@@ -25,6 +25,21 @@ ShiftChart.prototype.update = function(selectedStates){
 
     // ******* TODO: PART V *******
     //Display the names of selected states in a list
+    //console.log(selectedStates);
+
+    var list = self.divShiftChart.select("#stateList").selectAll("ul").data([1]);
+
+    list = list.enter().append("ul").merge(list);
+
+    var item = list.selectAll("li").data(selectedStates);
+
+    item.exit().remove();
+
+    item = item.enter().append("li").merge(item);
+
+    item.text(function(d){
+        return d.State;
+    });
 
     //******** TODO: PART VI*******
     //Use the shift data corresponding to the selected years and sketch a visualization
