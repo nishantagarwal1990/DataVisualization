@@ -117,14 +117,20 @@ YearChart.prototype.update = function(){
             return self.chooseClass(d.PARTY);
         })
         .on("click",function(d){
-            self.svg.selectAll("circle").classed("highlighted",false);
-            d3.select(this).classed("highlighted",true);
+            self.svg.selectAll("circle").classed("selected",false);
+            d3.select(this).classed("selected",true);
             var file = "data/year_timeline_"+d.YEAR+".csv";
             d3.csv(file,function(error,data){
                 self.tileChart.update(data,self.colorScale);
                 self.electoralVoteChart.update(data,self.colorScale);
                 self.votePercentageChart.update(data,self.colorScale);
             })
+        })
+        .on("mouseover",function(d){
+            d3.select(this).classed("highlighted",true);
+        })
+        .on("mouseout",function(d){
+            self.svg.selectAll("circle").classed("highlighted",false);
         });
 
     groups.append("text")
@@ -133,7 +139,6 @@ YearChart.prototype.update = function(){
         .text(function(d){
             return d.YEAR;
         });
-
     //******* TODO: EXTRA CREDIT *******
 
     //Implement brush on the year chart created above.

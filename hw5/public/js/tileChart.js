@@ -100,21 +100,31 @@ TileChart.prototype.update = function(electionResult, colorScale){
             return [0,0];
         })
         .html(function(d) {
-            /* populate data in the following format
-             * tooltip_data = {
-             * "state": State,
-             * "winner":d.State_Winner
-             * "electoralVotes" : Total_EV
-             * "result":[
-             * {"nominee": D_Nominee_prop,"votecount": D_Votes,"percentage": D_Percentage,"party":"D"} ,
-             * {"nominee": R_Nominee_prop,"votecount": R_Votes,"percentage": R_Percentage,"party":"R"} ,
-             * {"nominee": I_Nominee_prop,"votecount": I_Votes,"percentage": I_Percentage,"party":"I"}
-             * ]
-             * }
-             * pass this as an argument to the tooltip_render function then,
-             * return the HTML content returned from that method.
-             * */
-            return ;
+            ///* populate data in the following format
+              tooltip_data = {
+              "state": d.State,
+              "winner":d.State_Winner,
+              "electoralVotes" : d.Total_EV,
+              "result":[
+              {"nominee": d.D_Nominee_prop,"votecount": d.D_Votes,"percentage": d.D_Percentage,"party":"D"} ,
+              {"nominee": d.R_Nominee_prop,"votecount": d.R_Votes,"percentage": d.R_Percentage,"party":"R"}
+              ]
+              }
+
+              if(d.I_Votes != "") {
+                  var I_data = {
+                      "nominee": d.I_Nominee_prop,
+                      "votecount": d.I_Votes,
+                      "percentage": d.I_Percentage,
+                      "party": "I"
+                  };
+                  tooltip_data.result.push(I_data);
+              }
+
+             // pass this as an argument to the tooltip_render function then,
+             // return the HTML content returned from that method.
+
+            return self.tooltip_render(tooltip_data);
         });
 
     //Creates a legend element and assigns a scale that needs to be visualized
@@ -122,7 +132,7 @@ TileChart.prototype.update = function(electionResult, colorScale){
         .attr("class", "legendQuantile");
 
     var legendQuantile = d3.legendColor()
-        .shapeWidth(120)
+        .shapeWidth(60)
         .cells(10)
         .orient('horizontal')
         .scale(colorScale);
@@ -142,4 +152,69 @@ TileChart.prototype.update = function(electionResult, colorScale){
     //Call the tool tip on hover over the tiles to display stateName, count of electoral votes
     //then, vote percentage and number of votes won by each party.
     //HINT: Use the .republican, .democrat and .independent classes to style your elements.
+
+    //console.log(electionResult);
+
+    d3.select(".legendQuantile")
+        .style("font-size","10px")
+        .attr("transform","translate(50,0)")
+        .call(legendQuantile);
+
+    var width = self.svgWidth/12;
+    var height = self.svgHeight/8;
+
+    var tiles = self.svg.selectAll("rect").data(electionResult);
+
+    tiles.exit().remove();
+
+    tiles = tiles.enter().append("rect")
+        .attr("height",height)
+        .attr("width",width)
+        .classed("tile",true)
+        .merge(tiles);
+
+    tiles.call(tip);
+
+    tiles.attr("x",function(d){
+        return d.Space*width;
+    })
+        .attr("y",function(d){
+            return d.Row*height;
+        })
+        .attr("fill",function(d){
+            return colorScale(parseFloat(d.RD_Difference));
+        })
+        .on("mouseover",tip.show)
+        .on("mouseout",tip.hide);
+
+    var tilestext = self.svg.selectAll("text").data(electionResult);
+
+    tilestext.exit().remove();
+
+    tilestext = tilestext.enter().append("text")
+        .classed("tilestext",true)
+        .merge(tilestext);
+
+    tilestext.selectAll("tspan").remove();
+    //http://stackoverflow.com/questions/19791143/how-to-dynamically-display-a-multiline-text-in-d3-js
+
+    tilestext.attr("y",function(d){
+            return (d.Row*height)+height/2;
+        })
+        .append("tspan")
+        .attr("x",function(d){
+            return (d.Space*width)+width/2;
+        })
+        .text(function(d){
+            return d.Abbreviation;
+        });
+
+    tilestext.append("tspan")
+        .attr("x",function(d){
+            return (d.Space*width)+width/2;
+        })
+        .attr("dy",15)
+        .text(function(d){
+            return d.Total_EV;
+        })
 };
