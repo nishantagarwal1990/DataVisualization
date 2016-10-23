@@ -190,7 +190,7 @@ TileChart.prototype.update = function(electionResult, colorScale){
         .on("mouseover",tip.show)
         .on("mouseout",tip.hide);
 
-    var tilestext = self.svg.selectAll("text").data(electionResult);
+    var tilestext = self.svg.selectAll(".tilestext").data(electionResult);
 
     tilestext.exit().remove();
 
@@ -198,27 +198,32 @@ TileChart.prototype.update = function(electionResult, colorScale){
         .classed("tilestext",true)
         .merge(tilestext);
 
-    tilestext.selectAll("tspan").remove();
+    tilestext.attr("y",function(d){
+        return (d.Row*height)+height/2;
+    });
+
+    var tilesspan = tilestext.selectAll("tspan").data(function(d){
+        return [{Space: d.Space,value:d.Abbreviation},
+                {Space:d.Space,value:d.Total_EV}
+                ];
+    });
+
+    tilesspan.exit().remove();
+
+    tilesspan = tilesspan.enter().append("tspan").merge(tilesspan);
 
     //http://stackoverflow.com/questions/19791143/how-to-dynamically-display-a-multiline-text-in-d3-js
 
-    tilestext.attr("y",function(d){
-            return (d.Row*height)+height/2;
-        })
-        .append("tspan")
-        .attr("x",function(d){
-            return (d.Space*width)+width/2;
-        })
-        .text(function(d){
-            return d.Abbreviation;
-        });
 
-    tilestext.append("tspan")
-        .attr("x",function(d){
+    tilesspan.attr("x",function(d){
             return (d.Space*width)+width/2;
         })
-        .attr("dy",15)
-        .text(function(d){
-            return d.Total_EV;
+        .attr("dy",function(d,i){
+            //console.log(i);
+            if(i==1)
+                return 15;
         })
+        .text(function(d,i){
+            return d.value;
+        });
 };

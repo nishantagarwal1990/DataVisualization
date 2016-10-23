@@ -115,7 +115,7 @@ ElectoralVoteChart.prototype.update = function(electionResult, colorScale){
     //console.log(electionResult);
 
 
-    var group = self.svg.append("g").classed("electoralVotes",true);
+    var group = self.svg.selectAll(".electoralVotes").data([1]).enter().append("g").classed("electoralVotes",true);
 
     var stackedbar = group.selectAll("rect").data(electionResult);
 
@@ -226,6 +226,7 @@ ElectoralVoteChart.prototype.update = function(electionResult, colorScale){
     //Call the update method of shiftChart and pass the data corresponding to brush selection.
     //HINT: Use the .brush class to style the brush.
 
+
     //http://bl.ocks.org/mbostock/34f08d5e11952a80609169b7917d4172
     function brushed(){
         //on work if there is an event or a selection
@@ -251,6 +252,8 @@ ElectoralVoteChart.prototype.update = function(electionResult, colorScale){
 
     var brush = d3.brushX().extent([[0,height/2-10],[width,height/2+40]]).on("end", brushed);
 
-    self.svg.append("g").attr("class", "brush").call(brush);
+    self.svg.select(".brush").call(brush.move, null);
+
+    self.svg.selectAll(".brush").data([1]).enter().append("g").attr("class", "brush").call(brush);
 
 };

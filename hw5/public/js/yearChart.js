@@ -7,13 +7,14 @@
  * @param electionInfo instance of ElectionInfo
  * @param electionWinners data corresponding to the winning parties over mutiple election years
  */
-function YearChart(electoralVoteChart, tileChart, votePercentageChart, electionWinners) {
+function YearChart(shiftChart,electoralVoteChart, tileChart, votePercentageChart, electionWinners) {
     var self = this;
 
     self.electoralVoteChart = electoralVoteChart;
     self.tileChart = tileChart;
     self.votePercentageChart = votePercentageChart;
     self.electionWinners = electionWinners;
+    self.shiftChart = shiftChart;
     self.init();
 };
 
@@ -124,7 +125,7 @@ YearChart.prototype.update = function(){
                 self.tileChart.update(data,self.colorScale);
                 self.electoralVoteChart.update(data,self.colorScale);
                 self.votePercentageChart.update(data,self.colorScale);
-            })
+            });
         })
         .on("mouseover",function(d){
             d3.select(this).classed("highlighted",true);
@@ -139,10 +140,52 @@ YearChart.prototype.update = function(){
         .text(function(d){
             return d.YEAR;
         });
+
+
+    var file = "data/year_timeline_2012.csv";
+    d3.csv(file,function(error,data){
+        self.tileChart.update(data,self.colorScale);
+        self.electoralVoteChart.update(data,self.colorScale);
+        self.votePercentageChart.update(data,self.colorScale);
+        var def_year = d3.selectAll(".yearChart").filter(function(d){
+            return d.YEAR == 2012;
+        });
+
+        def_year.classed("selected",true);
+    });
     //******* TODO: EXTRA CREDIT *******
 
     //Implement brush on the year chart created above.
     //Implement a call back method to handle the brush end event.
     //Call the update method of shiftChart and pass the data corresponding to brush selection.
     //HINT: Use the .brush class to style the brush.
+
+    // function brushed(){
+    //     //on work if there is an event or a selection
+    //     if(!d3.event.sourceEvent) return;
+    //     if(!d3.event.selection) return;
+    //     var s = d3.event.selection;
+    //     console.log(s);
+    //     var value = 0;
+    //     var prev = 0;
+    //     var selected_years = [];
+    //     for(var j = 0; j<self.electionWinners.length; j++){
+    //         var d = self.electionWinners[j];
+    //         prev = value;
+    //         value = (j*xScale.step()+xScale.step());
+    //         console.log(value);
+    //         if(s[0] <= value && value <= s[1])
+    //             selected_years.push(d);
+    //     }
+    //     self.shiftChart.update(selected_years);
+    // }
+    //
+    // var width = self.svgWidth;
+    // var height = self.svgHeight;
+    //
+    // var brush = d3.brushX().extent([[0,height/2-20],[width,height/2+20]]).on("end", brushed);
+    //
+    // self.svg.select(".brush").call(brush.move, null);
+    //
+    // self.svg.selectAll(".brush").data([1]).enter().append("g").attr("class", "brush").call(brush);
 };

@@ -38,7 +38,10 @@ ShiftChart.prototype.update = function(selectedStates){
     item = item.enter().append("li").merge(item);
 
     item.text(function(d){
-        return d.State;
+        if(d.State)
+            return d.State;
+        else
+            return d.YEAR;
     });
 
     //******** TODO: PART VI*******
