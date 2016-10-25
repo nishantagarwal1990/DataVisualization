@@ -115,7 +115,9 @@ ElectoralVoteChart.prototype.update = function(electionResult, colorScale){
     //console.log(electionResult);
 
 
-    var group = self.svg.selectAll(".electoralVotes").data([1]).enter().append("g").classed("electoralVotes",true);
+    var group = self.svg.selectAll(".electoralVotes").data([1]);
+
+    group = group.enter().append("g").classed("electoralVotes",true).merge(group);
 
     var stackedbar = group.selectAll("rect").data(electionResult);
 
